@@ -21,7 +21,8 @@ welcome:
 debug: welcome clean-up
 	@echo "\e[1m\033[33mDebug mode\e[0m"
 	@docker run -it -v $(shell pwd):${APP_DIR} -w ${APP_DIR} \
-		-p 8092:8092 --name ${APP_NAME}-debug ${DOCKER_BASE_IMAGE} bash
+		--env-file .env -p 8092:8092 --name ${APP_NAME}-debug \
+		${DOCKER_BASE_IMAGE} bash
 
 clean-up:
 ifneq ($(shell docker ps --filter "name=${APP_NAME}" -aq 2> /dev/null | wc -l | bc), 0)
