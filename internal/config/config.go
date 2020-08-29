@@ -8,7 +8,6 @@ import (
 // Config summarises environment variables.
 type Config struct {
 	LogLevel string `mapstructure:"log_level"`
-	// Port     int    `mapstructure:"port"` // move this variable to makefile
 }
 
 // Load return all environment variables loaded.

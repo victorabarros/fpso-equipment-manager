@@ -3,6 +3,7 @@
 APP_NAME?=$(shell pwd | xargs basename)
 APP_DIR = /go/src/github.com/victorabarros/${APP_NAME}
 DOCKER_BASE_IMAGE=golang:1.14
+PORT=8092
 
 welcome:
 	@echo "\033[33m        _             _  _                            " && sleep .02
@@ -21,7 +22,7 @@ welcome:
 debug: welcome clean-up
 	@echo "\e[1m\033[33mDebug mode\e[0m"
 	@docker run -it -v $(shell pwd):${APP_DIR} -w ${APP_DIR} \
-		--env-file .env -p 8092:8092 --name ${APP_NAME}-debug \
+		--env-file .env -p ${PORT}:8092 --name ${APP_NAME}-debug \
 		${DOCKER_BASE_IMAGE} bash
 
 clean-up:
