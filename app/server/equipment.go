@@ -72,7 +72,8 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	json.NewEncoder(rw).Encode(response{
-		fmt.Sprintf("relation already exists on inventory: '%+2v'", equipmentsRepeateds),
+		fmt.Sprintf("relation already exists on inventory: '%+2v'",
+			equipmentsRepeateds),
 	})
 }
 
@@ -80,31 +81,34 @@ func handleBody(body io.ReadCloser) ([]equipment, error) {
 	errs := []string{}
 	payloadSingle := equipment{}
 	payloadList := []equipment{}
-	errSing := json.NewDecoder(body).Decode(&payloadSingle)
 	errList := json.NewDecoder(body).Decode(&payloadList)
+	errSing := json.NewDecoder(body).Decode(&payloadSingle)
 
 	if errSing != nil && errList != nil {
-		fmt.Println("21", errSing.Error())
-		fmt.Println("24", errList.Error())
-		logrus.Debugf(fmt.Errorf("11%s\n%s", errSing.Error(), errList.Error()).Error())
+		logrus.Debug(errList.Error(), payloadList)
+		logrus.Debug(errSing.Error(), payloadSingle)
 		return payloadList, fmt.Errorf("%s\n%s", errSing.Error(), errList.Error())
 	}
 
 	if errList != nil {
-		logrus.Debugf(fmt.Errorf("22%s\n%s", errSing.Error(), errList.Error()).Error())
+		logrus.Debugf(errList.Error())
 		payloadList = append(payloadList, payloadSingle)
 	}
 
+	response := []equipment{}
 	for _, payload := range payloadList {
 		if payload.Name == "" || payload.Code == "" { // TODO location tbm é not null?
 			logrus.Debugf("payload empty: %+2v", payload)
 			errs = append(errs, fmt.Sprintf("payload '%+2v' can't be empty or nil", payload))
+		} else {
+			response = append(response, payload)
 		}
 	}
 
 	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n"))
+		logrus.Debugf("%+2v\n", errs)
+		return response, errors.New(strings.Join(errs, "\n"))
 	}
 
-	return payloadList, nil
+	return response, nil
 }
