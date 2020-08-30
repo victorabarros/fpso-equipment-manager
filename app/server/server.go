@@ -13,7 +13,7 @@ type equipment struct {
 	Code     string `json:"code"`
 	Location string `json:"location"`
 	Name     string `json:"name"`
-	Status   bool   `json:"status"`
+	Status   string `json:"status"`
 }
 
 // db[vesselCode][equipmentCode]

@@ -2,7 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -26,8 +28,7 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	payload := equipment{}
-	err := json.NewDecoder(req.Body).Decode(&payload)
+	equipments, err := handleBody(req.Body)
 	if err != nil {
 		logrus.Debugf("bad request: %ss", err.Error())
 		rw.WriteHeader(http.StatusBadRequest)
@@ -35,30 +36,75 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 			Message: err.Error(),
 		})
 		return
-	} else if payload.Name == "" || payload.Location == "" || payload.Code == "" {
-		logrus.Debugf("payload empty: %+2v", payload)
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(response{
-			"payload can't be empty or nil",
-		})
+	}
+
+	equipmentsUtils := []equipment{}
+	equipmentsRepeateds := map[string]string{}
+
+	for _, payload := range equipments {
+		payload.Code = strings.ToUpper(payload.Code)
+
+		vesselE, ok := equipmentSet[payload.Code] // TODO improve name
+		if ok {
+			logrus.Debugf("'%s' already exists", payload.Code)
+			equipmentsRepeateds[payload.Code] = vesselE
+		} else {
+			equipmentsUtils = append(equipmentsUtils, payload)
+		}
+	}
+
+	for _, payload := range equipmentsUtils {
+		payload.Status = "active"
+
+		equipmentSet[payload.Code] = vessel
+		inventory[payload.Code] = payload
+	}
+
+	if len(equipmentsRepeateds) == 0 {
+		rw.WriteHeader(http.StatusCreated)
 		return
 	}
 
-	payload.Code = strings.ToUpper(payload.Code)
-
-	vesselE, ok := equipmentSet[payload.Code] // TODO improve name
-	if ok {
-		logrus.Debugf("'%s' already exists", payload.Code)
+	if len(equipmentsRepeateds) == len(equipments) {
 		rw.WriteHeader(http.StatusConflict)
-		json.NewEncoder(rw).Encode(response{
-			fmt.Sprintf("'%s' already exists on inventory from vessel '%s'", payload.Code, vesselE),
-		})
-		return
+	} else {
+		rw.WriteHeader(http.StatusPartialContent)
 	}
 
-	equipmentSet[payload.Code] = vessel
+	json.NewEncoder(rw).Encode(response{
+		fmt.Sprintf("relation already exists on inventory: '%+2v'", equipmentsRepeateds),
+	})
+}
 
-	payload.Status = true
+func handleBody(body io.ReadCloser) ([]equipment, error) {
+	errs := []string{}
+	payloadSingle := equipment{}
+	payloadList := []equipment{}
+	errSing := json.NewDecoder(body).Decode(&payloadSingle)
+	errList := json.NewDecoder(body).Decode(&payloadList)
 
-	inventory[payload.Code] = payload
+	if errSing != nil && errList != nil {
+		fmt.Println("21", errSing.Error())
+		fmt.Println("24", errList.Error())
+		logrus.Debugf(fmt.Errorf("11%s\n%s", errSing.Error(), errList.Error()).Error())
+		return payloadList, fmt.Errorf("%s\n%s", errSing.Error(), errList.Error())
+	}
+
+	if errList != nil {
+		logrus.Debugf(fmt.Errorf("22%s\n%s", errSing.Error(), errList.Error()).Error())
+		payloadList = append(payloadList, payloadSingle)
+	}
+
+	for _, payload := range payloadList {
+		if payload.Name == "" || payload.Code == "" { // TODO location tbm é not null?
+			logrus.Debugf("payload empty: %+2v", payload)
+			errs = append(errs, fmt.Sprintf("payload '%+2v' can't be empty or nil", payload))
+		}
+	}
+
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n"))
+	}
+
+	return payloadList, nil
 }
