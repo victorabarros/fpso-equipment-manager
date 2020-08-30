@@ -18,7 +18,7 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 	inventory, ok := db[vessel]
 	rw.Header().Set("Content-Type", "application/json")
 	if !ok {
-		logrus.Errorf("vessel '%s' doesn't exists", vessel)
+		logrus.Debugf("vessel '%s' doesn't exists", vessel)
 		rw.WriteHeader(http.StatusNotFound) // TODO verificar se este é o status code correto
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
@@ -29,14 +29,14 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 	payload := equipment{}
 	err := json.NewDecoder(req.Body).Decode(&payload)
 	if err != nil {
-		logrus.Errorf("bad request: %ss", err.Error())
+		logrus.Debugf("bad request: %ss", err.Error())
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
 			Message: err.Error(),
 		})
 		return
 	} else if payload.Name == "" || payload.Location == "" || payload.Code == "" {
-		logrus.Errorf("payload empty: %+2v", payload)
+		logrus.Debugf("payload empty: %+2v", payload)
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
 			"payload can't be empty or nil",
@@ -48,7 +48,7 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 
 	vesselE, ok := equipmentSet[payload.Code] // TODO improve name
 	if ok {
-		logrus.Errorf("'%s' already exists", payload.Code)
+		logrus.Debugf("'%s' already exists", payload.Code)
 		rw.WriteHeader(http.StatusConflict)
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("'%s' already exists on inventory from vessel '%s'", payload.Code, vesselE),

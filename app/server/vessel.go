@@ -23,14 +23,14 @@ func insertVessel(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(req.Body).Decode(&payload)
 	if err != nil {
-		logrus.Errorf("bad request: %s", err.Error())
+		logrus.Debugf("bad request: %s", err.Error())
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
 			Message: err.Error(),
 		})
 		return
 	} else if payload.Code == "" {
-		logrus.Errorf("code empty: %+2v", payload)
+		logrus.Debugf("code empty: %+2v", payload)
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
 			"code can't be empty or nil",
@@ -42,7 +42,7 @@ func insertVessel(rw http.ResponseWriter, req *http.Request) {
 
 	_, ok := db[code]
 	if ok {
-		logrus.Errorf("'%s' already exists", code)
+		logrus.Debugf("'%s' already exists", code)
 		rw.WriteHeader(http.StatusConflict)
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("code '%s' already exists", code),
