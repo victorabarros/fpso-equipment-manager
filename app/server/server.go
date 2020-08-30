@@ -10,13 +10,15 @@ import (
 )
 
 type equipment struct {
-	name     string
-	location string
-	status   bool
+	Code     string `json:"code"`
+	Location string `json:"location"`
+	Name     string `json:"name"`
+	Status   bool   `json:"status"`
 }
 
 // db[vesselCode][equipmentCode]
 var db = map[string]map[string]equipment{}
+var equipmentSet = make(map[string]string)
 
 // Run up server
 func Run(port string) {
@@ -24,6 +26,7 @@ func Run(port string) {
 	r.HandleFunc("/healthz", liveness)
 	r.HandleFunc("/healthy", readiness)
 	r.HandleFunc("/vessel", insertVessel).Methods(http.MethodPost)
+	r.HandleFunc("/equipment/{vesselCode}", insertEquipment).Methods(http.MethodPost)
 
 	srv := http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
