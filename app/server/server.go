@@ -26,7 +26,11 @@ func Run(port string) {
 	r.HandleFunc("/healthz", liveness)
 	r.HandleFunc("/healthy", readiness)
 	r.HandleFunc("/vessel", insertVessel).Methods(http.MethodPost)
-	r.HandleFunc("/equipment/{vesselCode}", insertEquipment).Methods(http.MethodPost)
+	// r.HandleFunc("/equipment/{vesselCode}", insertSingleEquipment).Methods(http.MethodPost)
+	// r.HandleFunc("/equipments", insertEquipmentList).Methods(http.MethodPost)
+	r.HandleFunc("/equipments/{vesselCode}", insertEquipment).Methods(http.MethodPost) // TODO Substituir pelo acima
+	r.HandleFunc("/equipments/{vesselCode}", fetchEquipments).Methods(http.MethodGet)  // TODO faz sentido mudar para "/inventory"
+	r.HandleFunc("/equipment/{equipmentCode}", patchStatus).Methods(http.MethodPatch)
 
 	srv := http.Server{
 		Addr:    fmt.Sprintf(":%s", port),

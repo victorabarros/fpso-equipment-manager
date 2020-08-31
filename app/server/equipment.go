@@ -95,20 +95,91 @@ func handleBody(body io.ReadCloser) ([]equipment, error) {
 		payloadList = append(payloadList, payloadSingle)
 	}
 
-	response := []equipment{}
+	resp := []equipment{}
 	for _, payload := range payloadList {
 		if payload.Name == "" || payload.Code == "" { // TODO location tbm é not null?
 			logrus.Debugf("payload empty: %+2v", payload)
 			errs = append(errs, fmt.Sprintf("payload '%+2v' can't be empty or nil", payload))
 		} else {
-			response = append(response, payload)
+			resp = append(resp, payload)
 		}
 	}
 
 	if len(errs) > 0 {
 		logrus.Debugf("%+2v\n", errs)
-		return response, errors.New(strings.Join(errs, "\n"))
+		return resp, errors.New(strings.Join(errs, "\n"))
 	}
 
-	return response, nil
+	return resp, nil
+}
+
+func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
+	logrus.Debug("route \"fetchEquipments\" trigged")
+	params := mux.Vars(req)
+	vessel := strings.ToUpper(params["vesselCode"])
+	rw.Header().Set("Content-Type", "application/json")
+
+	inventory, ok := db[vessel]
+	if !ok {
+		rw.WriteHeader(http.StatusNotFound) // TODO verificar se este é o status code correto
+		json.NewEncoder(rw).Encode(response{
+			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
+		})
+		return
+	}
+	resp := []equipment{}
+	for _, equip := range inventory {
+		resp = append(resp, equip)
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	json.NewEncoder(rw).Encode(resp)
+}
+
+func patchStatus(rw http.ResponseWriter, req *http.Request) {
+	logrus.Debug("route \"patchStatus\" trigged")
+	payload := struct {
+		Status string `json:"status"`
+	}{}
+
+	rw.Header().Set("Content-Type", "application/json")
+	err := json.NewDecoder(req.Body).Decode(&payload)
+	if err != nil {
+		logrus.Debugf("bad request: %s", err.Error())
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			Message: err.Error(),
+		})
+		return
+	}
+
+	payload.Status = strings.ToUpper(payload.Status)
+	if payload.Status == "" || (payload.Status != "ACTIVE" && payload.Status != "INACTIVE") {
+		logrus.Debugf("status invalid: %+2v", payload)
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			"status invalid",
+		})
+		return
+	}
+
+	params := mux.Vars(req)
+	equipment := strings.ToUpper(params["equipmentCode"])
+
+	vessel, ok := equipmentSet[equipment]
+	if !ok {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			fmt.Sprintf("equipment %s not registred", equipment),
+		})
+		return
+	}
+
+	inventory := db[vessel]
+	data := inventory[equipment]
+	data.Status = payload.Status
+
+	rw.WriteHeader(http.StatusOK)
+	json.NewEncoder(rw).Encode(response{
+		fmt.Sprintf("status from equipment '%s' updated with success", equipment)})
 }
