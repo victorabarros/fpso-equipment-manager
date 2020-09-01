@@ -30,3 +30,9 @@ ifneq ($(shell docker ps --filter "name=${APP_NAME}" -aq 2> /dev/null | wc -l | 
 	@echo "\e[1m\033[33mRemoving containers\e[0m"
 	@docker ps --filter "name=${APP_NAME}" -aq | xargs docker rm -f
 endif
+
+test:
+	@echo "\e[1m\033[33mInitalizing tests\e[0m"
+	@docker run --rm -v ${PWD}:${APP_DIR} -w ${APP_DIR} \
+		--env-file .env --name ${APP_NAME}-test ${DOCKER_BASE_IMAGE} \
+		sh -c "go test ./... -v -cover -race -coverprofile=c.out"
