@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"github.com/victorabarros/challenge-modec/internal/database"
 )
 
 func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
@@ -15,7 +16,7 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	defer fmt.Printf("%+2v\n", db) // TODO remove
 
-	payload := equipment{}
+	payload := database.Equipment{}
 	err := json.NewDecoder(req.Body).Decode(&payload)
 	if err != nil {
 		logrus.Errorf("bad request: %ss", err.Error())
@@ -79,7 +80,7 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 	defer fmt.Printf("%+2v\n", db) // TODO remove
 
 	errs := []string{}
-	equips := []equipment{}
+	equips := []database.Equipment{}
 	err := json.NewDecoder(req.Body).Decode(&equips)
 
 	if err != nil {
@@ -169,7 +170,7 @@ func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp := []equipment{}
+	resp := []database.Equipment{}
 	for _, equip := range inventory {
 		if equip.Status == "inactive" {
 			continue
@@ -200,6 +201,7 @@ func inactiveEquipment(rw http.ResponseWriter, req *http.Request) {
 	inventory := db[vessel]
 	data := inventory[equipment]
 	data.Status = "inactive"
+	inventory[equipment] = data
 	delete(equipmentSet, equipment)
 
 	rw.WriteHeader(http.StatusAccepted)

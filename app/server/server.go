@@ -7,22 +7,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"github.com/victorabarros/challenge-modec/internal/database"
 )
 
-type equipment struct {
-	Code     string `json:"code"`
-	Name     string `json:"name"`
-	Location string `json:"location"`
-	Status   string `json:"status"`
-}
-
-// db[vesselCode][equipmentCode]
-var db = map[string]map[string]equipment{}
-var equipmentSet = make(map[string]string)
+var db = database.Inventory
+var equipmentSet = database.EquipmentSet
 
 // Run up server
 func Run(port string) {
-	db["E"] = map[string]equipment{} // TODO remove
 	r := mux.NewRouter()
 	r.HandleFunc("/healthz", liveness)
 	r.HandleFunc("/healthy", readiness)

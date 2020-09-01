@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"github.com/victorabarros/challenge-modec/internal/database"
 )
 
 type response struct {
@@ -50,6 +51,6 @@ func insertVessel(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	db[code] = make(map[string]equipment)
+	db[code] = make(map[string]database.Equipment)
 	rw.WriteHeader(http.StatusCreated)
 }
