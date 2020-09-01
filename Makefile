@@ -35,10 +35,17 @@ test:
 	@echo "\e[1m\033[33mInitalizing tests\e[0m"
 	@docker run --rm -v ${PWD}:${APP_DIR} -w ${APP_DIR} \
 		--env-file .env --name ${APP_NAME}-test ${DOCKER_BASE_IMAGE} \
-		sh -c "go test ./... -v -cover -race -coverprofile=c.out"
+		sh -c "go test ./... -v -cover -race -coverprofile=./dev/c.out"
 
 test-coverage:
-	@echo "\e[1m\033[33mBuilding c.out\e[0m"
-	@rm -rf c.out
+	@echo "\e[1m\033[33mBuilding ./dev/c.out\e[0m"
+	@rm -rf ./dev/c.out
 	@make test
-	@go tool cover -html=c.out
+	@go tool cover -html=./dev/c.out
+
+test-log:
+	@echo "\e[1m\033[33mWriting ./dev/tests.log\e[0m"
+	@rm -rf dev/tests*.log
+	@make test > dev/tests.log
+	@echo "\e[1m\033[33mWriting ./dev/tests-summ.log\e[0m"
+	@cat dev/tests.log  | grep "coverage: " > dev/tests-summ.log

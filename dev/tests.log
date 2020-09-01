@@ -1,0 +1,44 @@
+make[1]: Entering directory '/home/vabarros/go/src/github.com/victorabarros/challenge-modec'
+[1m[33mInitalizing tests[0m
+?   	github.com/victorabarros/challenge-modec	[no test files]
+=== RUN   TestInsertSingleEquipment
+time="2020-09-01T23:43:22Z" level=error msg="bad request: json: cannot unmarshal number into Go struct field Equipment.code of type strings"
+code 400 : {Message:json: cannot unmarshal number into Go struct field Equipment.code of type string}
+time="2020-09-01T23:43:22Z" level=error msg="payload empty: {Code:   Name:   Location:   Status:  }"
+code 400 : {Message:name or code can't be empty or nil}
+time="2020-09-01T23:43:22Z" level=error msg="'9074R9W1' already exists"
+code 409 : {Message:equipment already exists on inventory: 'MV102'}
+--- PASS: TestInsertSingleEquipment (0.02s)
+=== RUN   TestInsertSingleEquipmentNotFound
+code 404 : {Message:vessel 'XPTO' doesn't exists}
+--- PASS: TestInsertSingleEquipmentNotFound (0.00s)
+=== RUN   TestInsertEquipmentList
+--- PASS: TestInsertEquipmentList (0.01s)
+=== RUN   TestInsertEquipmentListNotFound
+--- PASS: TestInsertEquipmentListNotFound (0.00s)
+=== RUN   TestFetchEquipment
+--- PASS: TestFetchEquipment (0.01s)
+=== RUN   TestFetchEquipmentNotFound
+--- PASS: TestFetchEquipmentNotFound (0.00s)
+=== RUN   TestInactiveEquipment
+--- PASS: TestInactiveEquipment (0.01s)
+=== RUN   TestInactiveEquipmentFail
+--- PASS: TestInactiveEquipmentFail (0.00s)
+=== RUN   TestLiveness
+--- PASS: TestLiveness (0.00s)
+=== RUN   TestReadness
+--- PASS: TestReadness (0.00s)
+=== RUN   TestInsertVessel
+--- PASS: TestInsertVessel (0.01s)
+=== RUN   TestInsertVesselBadRequest
+--- PASS: TestInsertVesselBadRequest (0.00s)
+PASS
+coverage: 100.0% of statements
+ok  	github.com/victorabarros/challenge-modec/app/server	0.085s	coverage: 100.0% of statements
+=== RUN   TestLoad
+--- PASS: TestLoad (0.00s)
+PASS
+coverage: 83.3% of statements
+ok  	github.com/victorabarros/challenge-modec/internal/config	0.031s	coverage: 83.3% of statements
+?   	github.com/victorabarros/challenge-modec/internal/database	[no test files]
+make[1]: Leaving directory '/home/vabarros/go/src/github.com/victorabarros/challenge-modec'
