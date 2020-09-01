@@ -229,45 +229,73 @@ func postEquipmentList(vessel string, equipts interface{}) error {
 }
 
 func TestFetchEquipment(t *testing.T) {
-	vessel := "MV104"
-	err := postVessel(vessel)
-	if err != nil {
-		t.Error(err)
+	tests := []struct {
+		vessel  string
+		body    []database.Equipment
+		length  int
+		success bool
+	}{
+		{
+			vessel: "MV104",
+			body: []database.Equipment{
+				{
+					Code:     "9873B3R7",
+					Location: "USA",
+					Name:     "tree",
+				},
+				{
+					Code:     "1119T1T5",
+					Location: "Italy",
+					Name:     "boiler",
+				},
+			},
+			success: true,
+		},
 	}
 
-	reqBody := []database.Equipment{
-		{
-			Code:     "9873B3R7",
-			Location: "USA",
-			Name:     "tree",
-		},
-		{
-			Code:     "1119T1T5",
-			Location: "Italy",
-			Name:     "boiler",
-		},
-	}
+	for _, test := range tests {
+		err := postVessel(test.vessel)
+		if err != nil {
+			t.Error(err)
+		}
 
-	err = postEquipmentList(vessel, reqBody)
-	if err != nil {
-		t.Error(err)
+		err = postEquipmentList(test.vessel, test.body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		endpoint := fmt.Sprint(baseRoute, "vessel/", test.vessel)
+		resp, err := http.Get(endpoint)
+		if err != nil {
+			t.Error(err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			fmt.Println(resp.StatusCode)
+			t.Errorf("%+2v", json.NewDecoder(resp.Body))
+		}
+
+		respBody := []database.Equipment{}
+		json.NewDecoder(resp.Body).Decode(&respBody)
+		if len(test.body) != len(respBody) {
+			t.Errorf("body must length %d: %+2v", len(test.body), respBody)
+		}
 	}
+}
+func TestFetchEquipmentNotFound(t *testing.T) {
+	vessel := "xopt"
 
 	endpoint := fmt.Sprint(baseRoute, "vessel/", vessel)
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		t.Error(err)
 	}
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNotFound {
 		fmt.Println(resp.StatusCode)
 		t.Errorf("%+2v", json.NewDecoder(resp.Body))
 	}
 
 	respBody := []database.Equipment{}
 	json.NewDecoder(resp.Body).Decode(&respBody)
-	if len(reqBody) != len(respBody) {
-		t.Errorf("body must length %d: %+2v", len(reqBody), respBody)
-	}
 }
 
 func TestInactiveEquipment(t *testing.T) {
