@@ -155,10 +155,10 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 
 func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"fetchEquipments\" trigged")
+	rw.Header().Set("Content-Type", "application/json")
 	defer fmt.Printf("%+2v\n", db) // TODO remove
 	params := mux.Vars(req)
 	vessel := strings.ToUpper(params["vesselCode"])
-	rw.Header().Set("Content-Type", "application/json")
 
 	inventory, ok := db[vessel]
 	if !ok {
@@ -183,6 +183,7 @@ func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 
 func inactiveEquipment(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"patchStatus\" trigged")
+	rw.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(req)
 	equipment := strings.ToUpper(params["equipmentCode"])
@@ -191,7 +192,7 @@ func inactiveEquipment(rw http.ResponseWriter, req *http.Request) {
 	if !ok {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
-			fmt.Sprintf("equipment '%s' isn't registred", equipment),
+			fmt.Sprintf("equipment '%s' isn't active", equipment),
 		})
 		return
 	}
@@ -199,9 +200,9 @@ func inactiveEquipment(rw http.ResponseWriter, req *http.Request) {
 	inventory := db[vessel]
 	data := inventory[equipment]
 	data.Status = "inactive"
-	// TODO remover equipmentSet[equipment]
+	delete(equipmentSet, equipment)
 
-	rw.WriteHeader(http.StatusOK)
+	rw.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(rw).Encode(response{
-		fmt.Sprintf("status from equipment '%s' updated with success", equipment)})
+		fmt.Sprintf("equipment '%s' inactivated", equipment)})
 }
