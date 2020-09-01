@@ -36,3 +36,9 @@ test:
 	@docker run --rm -v ${PWD}:${APP_DIR} -w ${APP_DIR} \
 		--env-file .env --name ${APP_NAME}-test ${DOCKER_BASE_IMAGE} \
 		sh -c "go test ./... -v -cover -race -coverprofile=c.out"
+
+test-coverage:
+	@echo "\e[1m\033[33mBuilding c.out\e[0m"
+	@rm -rf c.out
+	@make test
+	@go tool cover -html=c.out

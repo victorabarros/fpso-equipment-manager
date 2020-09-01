@@ -16,7 +16,6 @@ type response struct {
 
 func insertVessel(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"insertVessel\" trigged")
-	defer fmt.Printf("%+2v\n", db) // TODO remove
 	payload := struct {
 		Code string `json:"code"`
 	}{}

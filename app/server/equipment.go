@@ -14,7 +14,6 @@ import (
 func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"insertEquipment\" trigged")
 	rw.Header().Set("Content-Type", "application/json")
-	defer fmt.Printf("%+2v\n", db) // TODO remove
 
 	payload := database.Equipment{}
 	err := json.NewDecoder(req.Body).Decode(&payload)
@@ -40,7 +39,7 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 	if vessel == "EQUIPMENT" {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
-			"vessel code empty",
+			"vessel code, from route param, can't be empty",
 		})
 		return
 	}
@@ -72,12 +71,12 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 	payload.Status = "active"
 
 	inventory[payload.Code] = payload
+	rw.WriteHeader(http.StatusCreated)
 }
 
 func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"insertEquipment\" trigged")
 	rw.Header().Set("Content-Type", "application/json")
-	defer fmt.Printf("%+2v\n", db) // TODO remove
 
 	errs := []string{}
 	equips := []database.Equipment{}
@@ -157,7 +156,6 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"fetchEquipments\" trigged")
 	rw.Header().Set("Content-Type", "application/json")
-	defer fmt.Printf("%+2v\n", db) // TODO remove
 	params := mux.Vars(req)
 	vessel := strings.ToUpper(params["vesselCode"])
 
