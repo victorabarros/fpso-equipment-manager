@@ -19,6 +19,18 @@ welcome:
 	@echo "\033[33m         | | | | | || (_) || (_| ||  __/| (__         " && sleep .02
 	@echo "\033[33m         |_| |_| |_| \___/  \__,_| \___| \___|      \n" && sleep .02
 
+build: welcome
+	@echo "\e[1m\033[33mBuilding ./bin/main\e[0m"
+	@rm -rf ./bin/main
+	@docker run -it -v ${PWD}:${APP_DIR} -w ${APP_DIR} \
+		${DOCKER_BASE_IMAGE} sh -c "go build -o ./bin/main main.go"
+
+run: welcome clean-up
+	@echo "\e[1m\033[33mStarting server at port ${PORT}\e[0m"
+	@docker run -it -v $(shell pwd):${APP_DIR} -w ${APP_DIR} \
+		--env-file .env -p ${PORT}:8092 --name ${APP_NAME}-debug \
+		${DOCKER_BASE_IMAGE} ./bin/main
+
 debug: welcome clean-up
 	@echo "\e[1m\033[33mDebug mode\e[0m"
 	@docker run -it -v $(shell pwd):${APP_DIR} -w ${APP_DIR} \
@@ -31,7 +43,7 @@ ifneq ($(shell docker ps --filter "name=${APP_NAME}" -aq 2> /dev/null | wc -l | 
 	@docker ps --filter "name=${APP_NAME}" -aq | xargs docker rm -f
 endif
 
-test:
+test: welcome
 	@echo "\e[1m\033[33mInitalizing tests\e[0m"
 	@docker run --rm -v ${PWD}:${APP_DIR} -w ${APP_DIR} \
 		--env-file .env --name ${APP_NAME}-test ${DOCKER_BASE_IMAGE} \
