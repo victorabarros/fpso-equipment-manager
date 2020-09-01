@@ -281,6 +281,7 @@ func TestFetchEquipment(t *testing.T) {
 		}
 	}
 }
+
 func TestFetchEquipmentNotFound(t *testing.T) {
 	vessel := "xopt"
 
@@ -349,5 +350,27 @@ func TestInactiveEquipment(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&respBody)
 	if len(respBody) != 0 {
 		t.Errorf("body must length 0: %+2v", respBody)
+	}
+}
+
+func TestInactiveEquipmentFail(t *testing.T) {
+	equipt := "xptoequipment"
+	endpoint := fmt.Sprint(baseRoute, "equipment/", equipt)
+	req, err := http.NewRequest(http.MethodDelete, endpoint, nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if resp.StatusCode != http.StatusBadRequest {
+		fmt.Println(resp.StatusCode)
+		respBody := response{}
+		json.NewDecoder(resp.Body).Decode(&respBody)
+		t.Errorf("%+2v", respBody)
 	}
 }

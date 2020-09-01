@@ -1,6 +1,8 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +17,7 @@ func init() {
 func TestLiveness(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, "/healthz", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(liveness)
@@ -28,16 +30,14 @@ func TestLiveness(t *testing.T) {
 }
 
 func TestReadness(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "/healthy", nil)
+	resp, err := http.Get(fmt.Sprint(baseRoute, "/healthy"))
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(liveness)
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println(resp.StatusCode)
+		respBody := response{}
+		json.NewDecoder(resp.Body).Decode(&respBody)
+		t.Errorf("%+2v", respBody)
 	}
 }
