@@ -12,9 +12,9 @@ import (
 
 func TestInsertSingleEquipment(t *testing.T) {
 	tests := []struct {
-		vessel string
-		body   interface{}
-		sucess bool
+		vessel  string
+		body    interface{}
+		success bool
 	}{
 		{
 			vessel: "MV102",
@@ -23,7 +23,7 @@ func TestInsertSingleEquipment(t *testing.T) {
 				Location: "Japan",
 				Name:     "engine",
 			},
-			sucess: true,
+			success: true,
 		},
 		{
 			vessel: "mv1020",
@@ -32,7 +32,7 @@ func TestInsertSingleEquipment(t *testing.T) {
 				Location: "Japan",
 				Name:     "engine",
 			},
-			sucess: true,
+			success: true,
 		},
 		{
 			vessel: "MV1021",
@@ -41,12 +41,12 @@ func TestInsertSingleEquipment(t *testing.T) {
 			}{
 				4,
 			},
-			sucess: false,
+			success: false,
 		},
 		{
-			vessel: "MV1022",
-			body:   database.Equipment{},
-			sucess: false,
+			vessel:  "MV1022",
+			body:    database.Equipment{},
+			success: false,
 		},
 		{
 			vessel: "MV1023",
@@ -55,7 +55,7 @@ func TestInsertSingleEquipment(t *testing.T) {
 				Location: "Japan",
 				Name:     "engine",
 			},
-			sucess: false,
+			success: false,
 		},
 	}
 
@@ -64,7 +64,7 @@ func TestInsertSingleEquipment(t *testing.T) {
 			t.Error("fail to post vessel", err)
 		}
 
-		if err := postSingleEquipment(test.vessel, test.body); (err != nil) == test.sucess {
+		if err := postSingleEquipment(test.vessel, test.body); (err != nil) == test.success {
 			t.Error("fail to post single equipment", err)
 		}
 	}
@@ -76,17 +76,14 @@ func TestInsertSingleEquipmentNotFound(t *testing.T) {
 		Location: "Japan",
 		Name:     "engine",
 	}
-	sucess := false
 
-	if err := postSingleEquipment(vessel, body); (err != nil) == sucess {
+	if err := postSingleEquipment(vessel, body); err == nil {
 		t.Error("fail to post single equipment", err)
 	}
 }
 
 func postSingleEquipment(vessel string, equipt interface{}) error {
-	body := equipt
-
-	decode, err := json.Marshal(body)
+	decode, err := json.Marshal(equipt)
 	if err != nil {
 		return err
 	}
