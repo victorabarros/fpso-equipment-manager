@@ -11,8 +11,8 @@ import (
 
 type equipment struct {
 	Code     string `json:"code"`
-	Location string `json:"location"`
 	Name     string `json:"name"`
+	Location string `json:"location"`
 	Status   string `json:"status"`
 }
 
@@ -22,15 +22,15 @@ var equipmentSet = make(map[string]string)
 
 // Run up server
 func Run(port string) {
+	db["E"] = map[string]equipment{} // TODO remove
 	r := mux.NewRouter()
 	r.HandleFunc("/healthz", liveness)
 	r.HandleFunc("/healthy", readiness)
 	r.HandleFunc("/vessel", insertVessel).Methods(http.MethodPost)
-	// r.HandleFunc("/equipment/{vesselCode}", insertSingleEquipment).Methods(http.MethodPost)
-	// r.HandleFunc("/equipments", insertEquipmentList).Methods(http.MethodPost)
-	r.HandleFunc("/equipments/{vesselCode}", insertEquipment).Methods(http.MethodPost) // TODO Substituir pelo acima
-	r.HandleFunc("/equipments/{vesselCode}", fetchEquipments).Methods(http.MethodGet)  // TODO faz sentido mudar para "/inventory"
-	r.HandleFunc("/equipment/{equipmentCode}", patchStatus).Methods(http.MethodPatch)
+	r.HandleFunc("/vessel/{vesselCode}", fetchEquipments).Methods(http.MethodGet)
+	r.HandleFunc("/vessel/{vesselCode}/equipment", insertSingleEquipment).Methods(http.MethodPost)
+	r.HandleFunc("/vessel/{vesselCode}/equipments", insertEquipmentList).Methods(http.MethodPost)
+	r.HandleFunc("/equipment/{equipmentCode}", inactiveEquipment).Methods(http.MethodDelete)
 
 	srv := http.Server{
 		Addr:    fmt.Sprintf(":%s", port),

@@ -2,9 +2,7 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -12,15 +10,43 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func insertEquipment(rw http.ResponseWriter, req *http.Request) {
+func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"insertEquipment\" trigged")
+	rw.Header().Set("Content-Type", "application/json")
+	defer fmt.Printf("%+2v\n", db) // TODO remove
+
+	payload := equipment{}
+	err := json.NewDecoder(req.Body).Decode(&payload)
+	if err != nil {
+		logrus.Errorf("bad request: %ss", err.Error())
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			Message: err.Error(),
+		})
+		return
+	} else if payload.Name == "" || payload.Code == "" {
+		//TODO documentar que deixou location nullable
+		logrus.Errorf("payload empty: %+2v", payload)
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			"name, location, code or vessel can't be empty or nil",
+		})
+		return
+	}
+
 	params := mux.Vars(req)
 	vessel := strings.ToUpper(params["vesselCode"])
+	if vessel == "EQUIPMENT" {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			"vessel code empty",
+		})
+		return
+	}
 
 	inventory, ok := db[vessel]
-	rw.Header().Set("Content-Type", "application/json")
 	if !ok {
-		logrus.Debugf("vessel '%s' doesn't exists", vessel)
+		logrus.Errorf("vessel '%s' doesn't exists", vessel)
 		rw.WriteHeader(http.StatusNotFound) // TODO verificar se este é o status code correto
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
@@ -28,9 +54,36 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	equipments, err := handleBody(req.Body)
+	payload.Code = strings.ToUpper(payload.Code)
+
+	vesselE, ok := equipmentSet[payload.Code] // TODO improve name
+	if ok {
+		logrus.Errorf("'%s' already exists", payload.Code)
+		rw.WriteHeader(http.StatusConflict)
+		json.NewEncoder(rw).Encode(response{
+			fmt.Sprintf("equipment already exists on inventory: '%s'", vesselE),
+		})
+		return
+	}
+
+	equipmentSet[payload.Code] = vessel
+
+	payload.Status = "active"
+
+	inventory[payload.Code] = payload
+}
+
+func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
+	logrus.Debug("route \"insertEquipment\" trigged")
+	rw.Header().Set("Content-Type", "application/json")
+	defer fmt.Printf("%+2v\n", db) // TODO remove
+
+	errs := []string{}
+	equips := []equipment{}
+	err := json.NewDecoder(req.Body).Decode(&equips)
+
 	if err != nil {
-		logrus.Debugf("bad request: %ss", err.Error())
+		logrus.Debug(err.Error())
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
 			Message: err.Error(),
@@ -38,83 +91,71 @@ func insertEquipment(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	equipmentsUtils := []equipment{}
-	equipmentsRepeateds := map[string]string{}
-
-	for _, payload := range equipments {
-		payload.Code = strings.ToUpper(payload.Code)
-
-		vesselE, ok := equipmentSet[payload.Code] // TODO improve name
-		if ok {
-			logrus.Debugf("'%s' already exists", payload.Code)
-			equipmentsRepeateds[payload.Code] = vesselE
-		} else {
-			equipmentsUtils = append(equipmentsUtils, payload)
-		}
-	}
-
-	for _, payload := range equipmentsUtils {
-		payload.Status = "active"
-
-		equipmentSet[payload.Code] = vessel
-		inventory[payload.Code] = payload
-	}
-
-	if len(equipmentsRepeateds) == 0 {
-		rw.WriteHeader(http.StatusCreated)
-		return
-	}
-
-	if len(equipmentsRepeateds) == len(equipments) {
-		rw.WriteHeader(http.StatusConflict)
-	} else {
-		rw.WriteHeader(http.StatusPartialContent)
-	}
-
-	json.NewEncoder(rw).Encode(response{
-		fmt.Sprintf("relation already exists on inventory: '%+2v'",
-			equipmentsRepeateds),
-	})
-}
-
-func handleBody(body io.ReadCloser) ([]equipment, error) {
-	errs := []string{}
-	payloadSingle := equipment{}
-	payloadList := []equipment{}
-	errList := json.NewDecoder(body).Decode(&payloadList)
-	errSing := json.NewDecoder(body).Decode(&payloadSingle)
-
-	if errSing != nil && errList != nil {
-		logrus.Debug(errList.Error(), payloadList)
-		logrus.Debug(errSing.Error(), payloadSingle)
-		return payloadList, fmt.Errorf("%s\n%s", errSing.Error(), errList.Error())
-	}
-
-	if errList != nil {
-		logrus.Debugf(errList.Error())
-		payloadList = append(payloadList, payloadSingle)
-	}
-
-	resp := []equipment{}
-	for _, payload := range payloadList {
-		if payload.Name == "" || payload.Code == "" { // TODO location tbm é not null?
-			logrus.Debugf("payload empty: %+2v", payload)
-			errs = append(errs, fmt.Sprintf("payload '%+2v' can't be empty or nil", payload))
-		} else {
-			resp = append(resp, payload)
+	for _, equip := range equips {
+		if equip.Name == "" || equip.Code == "" {
+			//TODO documentar que deixou location nullable
+			logrus.Debugf("equip empty: %+2v", equip)
+			errs = append(errs,
+				fmt.Sprintf("fields from '%+2v' can't be null or empty", equip))
 		}
 	}
 
 	if len(errs) > 0 {
-		logrus.Debugf("%+2v\n", errs)
-		return resp, errors.New(strings.Join(errs, "\n"))
+		logrus.Debugf("5%+2v\n", errs)
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			Message: strings.Join(errs, "\n"),
+		})
+		return
 	}
 
-	return resp, nil
+	params := mux.Vars(req)
+	vessel := strings.ToUpper(params["vesselCode"])
+	// TODO validar se vessel é empty
+
+	_, ok := db[vessel]
+	if !ok {
+		logrus.Debugf("vessel '%s' doesn't exists", vessel)
+		rw.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(rw).Encode(response{
+			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
+		})
+		return
+	}
+
+	for _, equip := range equips {
+		equip.Code = strings.ToUpper(equip.Code)
+
+		vesselE, ok := equipmentSet[equip.Code] // TODO improve name
+		if ok {
+			errs = append(errs,
+				fmt.Sprintf("'%s' already registred to vessel '%s'",
+					equip.Code, vesselE))
+		}
+	}
+
+	if len(errs) > 0 {
+		logrus.Debugf("5%+2v\n", errs)
+		rw.WriteHeader(http.StatusConflict)
+		json.NewEncoder(rw).Encode(response{
+			Message: strings.Join(errs, "\n"),
+		})
+		return
+	}
+
+	rw.WriteHeader(http.StatusCreated)
+	for _, equip := range equips {
+		equip.Status = "active"
+
+		equipmentSet[equip.Code] = vessel
+		inventory := db[vessel]
+		inventory[equip.Code] = equip
+	}
 }
 
 func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"fetchEquipments\" trigged")
+	defer fmt.Printf("%+2v\n", db) // TODO remove
 	params := mux.Vars(req)
 	vessel := strings.ToUpper(params["vesselCode"])
 	rw.Header().Set("Content-Type", "application/json")
@@ -127,8 +168,12 @@ func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+
 	resp := []equipment{}
 	for _, equip := range inventory {
+		if equip.Status == "inactive" {
+			continue
+		}
 		resp = append(resp, equip)
 	}
 
@@ -136,32 +181,8 @@ func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(rw).Encode(resp)
 }
 
-func patchStatus(rw http.ResponseWriter, req *http.Request) {
+func inactiveEquipment(rw http.ResponseWriter, req *http.Request) {
 	logrus.Debug("route \"patchStatus\" trigged")
-	payload := struct {
-		Status string `json:"status"`
-	}{}
-
-	rw.Header().Set("Content-Type", "application/json")
-	err := json.NewDecoder(req.Body).Decode(&payload)
-	if err != nil {
-		logrus.Debugf("bad request: %s", err.Error())
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(response{
-			Message: err.Error(),
-		})
-		return
-	}
-
-	payload.Status = strings.ToUpper(payload.Status)
-	if payload.Status == "" || (payload.Status != "ACTIVE" && payload.Status != "INACTIVE") {
-		logrus.Debugf("status invalid: %+2v", payload)
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(response{
-			"status invalid",
-		})
-		return
-	}
 
 	params := mux.Vars(req)
 	equipment := strings.ToUpper(params["equipmentCode"])
@@ -170,14 +191,15 @@ func patchStatus(rw http.ResponseWriter, req *http.Request) {
 	if !ok {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
-			fmt.Sprintf("equipment %s not registred", equipment),
+			fmt.Sprintf("equipment '%s' isn't registred", equipment),
 		})
 		return
 	}
 
 	inventory := db[vessel]
 	data := inventory[equipment]
-	data.Status = payload.Status
+	data.Status = "inactive"
+	// TODO remover equipmentSet[equipment]
 
 	rw.WriteHeader(http.StatusOK)
 	json.NewEncoder(rw).Encode(response{
