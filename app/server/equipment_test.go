@@ -105,36 +105,110 @@ func postSingleEquipment(vessel string, equipt interface{}) error {
 }
 
 func TestInsertEquipmentList(t *testing.T) {
-	vessel := "MV103"
-	err := postVessel(vessel)
-	if err != nil {
-		t.Error(err)
+	tests := []struct {
+		vessel  string
+		body    interface{}
+		success bool
+	}{
+		{
+			vessel: "MV103",
+			body: []database.Equipment{
+				{
+					Code:     "5310B9D7",
+					Location: "Brazil",
+					Name:     "compressor",
+				},
+				{
+					Code:     "1408R2T8",
+					Location: "Germany",
+					Name:     "pump",
+				},
+			},
+			success: true,
+		},
+		{
+			vessel: "MV1031",
+			body: []struct {
+				Code int `json:"code"`
+			}{
+				{
+					4,
+				},
+			},
+			success: false,
+		},
+		{
+			vessel:  "MV1032",
+			body:    []database.Equipment{},
+			success: false,
+		},
+		{
+			vessel: "MV1033",
+			body: []database.Equipment{
+				{
+					Code:     "",
+					Location: "Germany",
+					Name:     "pump",
+				},
+			},
+			success: false,
+		},
+		{
+			vessel: "MV1034",
+			body: []database.Equipment{
+				{
+					Code:     "xpto",
+					Location: "Germany",
+					Name:     "",
+				},
+			},
+			success: false,
+		},
+		{
+			vessel: "MV1035",
+			body: []database.Equipment{
+				{
+					Code:     "1408R2T8",
+					Location: "Germany",
+					Name:     "pump",
+				},
+			},
+			success: false,
+		},
 	}
 
+	for _, test := range tests {
+		if err := postVessel(test.vessel); err != nil {
+			t.Error(err)
+		}
+
+		if err := postEquipmentList(test.vessel, test.body); (err != nil) == test.success {
+			t.Error(err)
+		}
+	}
+}
+
+func TestInsertEquipmentListNotFound(t *testing.T) {
+	vessel := "xptonot"
 	body := []database.Equipment{
 		{
-			Code:     "5310B9D7",
-			Location: "Brazil",
-			Name:     "compressor",
-		},
-		{
-			Code:     "1408R2T8",
+			Code:     "xpto2",
 			Location: "Germany",
-			Name:     "pump",
+			Name:     "xpto3",
 		},
 	}
-	err = postEquipmentList(vessel, body)
-	if err != nil {
+	success := false
+
+	if err := postEquipmentList(vessel, body); (err != nil) == success {
+		fmt.Printf("%+2v\n", body)
+		fmt.Printf("%+2v\n", success)
+		fmt.Println((err != nil) == success)
 		t.Error(err)
 	}
 }
 
-func postEquipmentList(vessel string, equipts []database.Equipment) error {
-	postVessel(vessel)
-
-	body := equipts
-
-	decode, err := json.Marshal(body)
+func postEquipmentList(vessel string, equipts interface{}) error {
+	decode, err := json.Marshal(equipts)
 	if err != nil {
 		return err
 	}
@@ -146,7 +220,9 @@ func postEquipmentList(vessel string, equipts []database.Equipment) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return err
+		respBody := response{}
+		json.NewDecoder(resp.Body).Decode(&respBody)
+		return fmt.Errorf("status code '%d': %+2v", resp.StatusCode, respBody)
 	}
 
 	return nil

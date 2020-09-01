@@ -72,12 +72,19 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 	errs := []string{}
 	equips := []database.Equipment{}
 	err := json.NewDecoder(req.Body).Decode(&equips)
-
 	if err != nil {
 		logrus.Debug(err.Error())
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
 			Message: err.Error(),
+		})
+		return
+	}
+
+	if len(equips) == 0 {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(response{
+			Message: "payload empty",
 		})
 		return
 	}
@@ -102,7 +109,6 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 
 	params := mux.Vars(req)
 	vessel := strings.ToUpper(params["vesselCode"])
-	// TODO validar se vessel é empty
 
 	_, ok := db[vessel]
 	if !ok {
