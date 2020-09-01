@@ -11,25 +11,79 @@ import (
 )
 
 func TestInsertSingleEquipment(t *testing.T) {
-	vessel := "MV102"
-	err := postVessel(vessel)
-	if err != nil {
-		t.Error(err)
+	tests := []struct {
+		vessel string
+		body   interface{}
+		sucess bool
+	}{
+		{
+			vessel: "MV102",
+			body: database.Equipment{
+				Code:     "9074R9W1",
+				Location: "Japan",
+				Name:     "engine",
+			},
+			sucess: true,
+		},
+		{
+			vessel: "mv1020",
+			body: database.Equipment{
+				Code:     "9074R9W13",
+				Location: "Japan",
+				Name:     "engine",
+			},
+			sucess: true,
+		},
+		{
+			vessel: "MV1021",
+			body: struct {
+				Code int `json:"code"`
+			}{
+				4,
+			},
+			sucess: false,
+		},
+		{
+			vessel: "MV1022",
+			body:   database.Equipment{},
+			sucess: false,
+		},
+		{
+			vessel: "MV1023",
+			body: database.Equipment{
+				Code:     "9074R9W1",
+				Location: "Japan",
+				Name:     "engine",
+			},
+			sucess: false,
+		},
 	}
 
+	for _, test := range tests {
+		if err := postVessel(test.vessel); err != nil {
+			t.Error("fail to post vessel", err)
+		}
+
+		if err := postSingleEquipment(test.vessel, test.body); (err != nil) == test.sucess {
+			t.Error("fail to post single equipment", err)
+		}
+	}
+}
+func TestInsertSingleEquipmentNotFound(t *testing.T) {
+	vessel := "xpto"
 	body := database.Equipment{
 		Code:     "9074R9W1",
 		Location: "Japan",
 		Name:     "engine",
 	}
+	sucess := false
 
-	err = postSingleEquipment(vessel, body)
-	if err != nil {
-		t.Error(err)
+	if err := postSingleEquipment(vessel, body); (err != nil) == sucess {
+		t.Error("fail to post single equipment", err)
 	}
 }
 
-func postSingleEquipment(vessel string, equipt database.Equipment) error {
+func postSingleEquipment(vessel string, equipt interface{}) error {
 	body := equipt
 
 	decode, err := json.Marshal(body)
@@ -43,8 +97,12 @@ func postSingleEquipment(vessel string, equipt database.Equipment) error {
 	if err != nil {
 		return err
 	}
+
 	if resp.StatusCode != http.StatusCreated {
-		return err
+		respBody := response{}
+		json.NewDecoder(resp.Body).Decode(&respBody)
+		fmt.Printf("code %d : %+2v\n", resp.StatusCode, respBody)
+		return fmt.Errorf("status code '%d': %+2v", resp.StatusCode, respBody)
 	}
 	return nil
 }

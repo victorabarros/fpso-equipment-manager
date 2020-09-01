@@ -31,7 +31,9 @@ func postVessel(code string) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("%+2v", json.NewDecoder(resp.Body))
+		respBody := response{}
+		json.NewDecoder(resp.Body).Decode(&respBody)
+		return fmt.Errorf("%+2v", respBody)
 	}
 	return nil
 }

@@ -25,28 +25,19 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 		})
 		return
 	} else if payload.Name == "" || payload.Code == "" {
-		//TODO documentar que deixou location nullable
+		// TODO documentar que deixou location nullable
 		logrus.Errorf("payload empty: %+2v", payload)
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
-			"name, location, code or vessel can't be empty or nil",
+			"name or code can't be empty or nil",
 		})
 		return
 	}
 
 	params := mux.Vars(req)
 	vessel := strings.ToUpper(params["vesselCode"])
-	if vessel == "EQUIPMENT" {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(response{
-			"vessel code, from route param, can't be empty",
-		})
-		return
-	}
-
 	inventory, ok := db[vessel]
 	if !ok {
-		logrus.Errorf("vessel '%s' doesn't exists", vessel)
 		rw.WriteHeader(http.StatusNotFound) // TODO verificar se este é o status code correto
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
