@@ -1,4 +1,4 @@
 coverage: 100.0% of statements
-ok  	github.com/victorabarros/challenge-modec/app/server	0.085s	coverage: 100.0% of statements
+ok  	github.com/victorabarros/challenge-modec/app/server	0.097s	coverage: 100.0% of statements
 coverage: 83.3% of statements
-ok  	github.com/victorabarros/challenge-modec/internal/config	0.031s	coverage: 83.3% of statements
+ok  	github.com/victorabarros/challenge-modec/internal/config	0.032s	coverage: 83.3% of statements
