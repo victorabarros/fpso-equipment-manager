@@ -65,6 +65,7 @@ More details about payloads are at the [collection](./dev/Challenge-Modec.postma
 Write `.env` file based on [.env.example](.env.example) and execute:
 
 ```sh
+make build
 make run
 ```
 
