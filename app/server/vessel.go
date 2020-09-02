@@ -38,7 +38,7 @@ func insertVessel(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	code := strings.ToUpper(payload.Code) // TODO Case insensitive?
+	code := strings.ToUpper(payload.Code)
 
 	_, ok := db[code]
 	if ok {

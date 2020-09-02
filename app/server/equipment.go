@@ -25,7 +25,6 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 		})
 		return
 	} else if payload.Name == "" || payload.Code == "" {
-		// TODO documentar que deixou location nullable
 		logrus.Errorf("payload empty: %+2v", payload)
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(response{
@@ -38,7 +37,7 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 	vessel := strings.ToUpper(params["vesselCode"])
 	inventory, ok := db[vessel]
 	if !ok {
-		rw.WriteHeader(http.StatusNotFound) // TODO verificar se este é o status code correto
+		rw.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
 		})
@@ -47,7 +46,7 @@ func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {
 
 	payload.Code = strings.ToUpper(payload.Code)
 
-	vesselE, ok := equipmentSet[payload.Code] // TODO improve name
+	vesselE, ok := equipmentSet[payload.Code]
 	if ok {
 		logrus.Errorf("'%s' already exists", payload.Code)
 		rw.WriteHeader(http.StatusConflict)
@@ -91,7 +90,6 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 
 	for _, equip := range equips {
 		if equip.Name == "" || equip.Code == "" {
-			//TODO documentar que deixou location nullable
 			logrus.Debugf("equip empty: %+2v", equip)
 			errs = append(errs,
 				fmt.Sprintf("fields from '%+2v' can't be null or empty", equip))
@@ -123,7 +121,7 @@ func insertEquipmentList(rw http.ResponseWriter, req *http.Request) {
 	for _, equip := range equips {
 		equip.Code = strings.ToUpper(equip.Code)
 
-		vesselE, ok := equipmentSet[equip.Code] // TODO improve name
+		vesselE, ok := equipmentSet[equip.Code]
 		if ok {
 			errs = append(errs,
 				fmt.Sprintf("'%s' already registred to vessel '%s'",
@@ -158,7 +156,7 @@ func fetchEquipments(rw http.ResponseWriter, req *http.Request) {
 
 	inventory, ok := db[vessel]
 	if !ok {
-		rw.WriteHeader(http.StatusNotFound) // TODO verificar se este é o status code correto
+		rw.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(rw).Encode(response{
 			fmt.Sprintf("vessel '%s' doesn't exists", vessel),
 		})
