@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/victorabarros/challenge-modec/internal/database"
+	"github.com/victorabarros/fpso-equipment-manager/internal/database"
 )
 
 type response struct {

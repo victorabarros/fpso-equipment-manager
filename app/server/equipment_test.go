@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/victorabarros/challenge-modec/internal/database"
+	"github.com/victorabarros/fpso-equipment-manager/internal/database"
 )
 
 func TestInsertSingleEquipment(t *testing.T) {

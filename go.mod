@@ -1,4 +1,4 @@
-module github.com/victorabarros/challenge-modec
+module github.com/victorabarros/fpso-equipment-manager
 
 go 1.14
 

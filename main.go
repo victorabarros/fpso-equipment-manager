@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/victorabarros/challenge-modec/app/server"
-	"github.com/victorabarros/challenge-modec/internal/config"
+	"github.com/victorabarros/fpso-equipment-manager/app/server"
+	"github.com/victorabarros/fpso-equipment-manager/internal/config"
 )
 
 func main() {

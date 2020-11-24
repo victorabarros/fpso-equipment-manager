@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/victorabarros/challenge-modec/internal/database"
+	"github.com/victorabarros/fpso-equipment-manager/internal/database"
 )
 
 func insertSingleEquipment(rw http.ResponseWriter, req *http.Request) {

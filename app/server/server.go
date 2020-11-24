@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/victorabarros/challenge-modec/internal/database"
+	"github.com/victorabarros/fpso-equipment-manager/internal/database"
 )
 
 var db = database.Inventory
@@ -45,7 +45,7 @@ func liveness(rw http.ResponseWriter, req *http.Request) {
 		ServiceName string
 		Version     string
 	}{
-		"Modec Challenge",
+		"fpso-equipment-manager",
 		"v1.0.0",
 	})
 }

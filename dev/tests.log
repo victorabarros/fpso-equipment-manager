@@ -1,4 +1,4 @@
-make[1]: Entering directory '/home/vabarros/go/src/github.com/victorabarros/challenge-modec'
+make[1]: Entering directory '/home/vabarros/go/src/github.com/victorabarros/fpso-equipment-manager'
 [33m        _             _  _                            
 [33m       | |           | || |                           
 [33m   ___ | |__    __ _ | || |  ___  _ __    __ _   ___  
@@ -13,7 +13,7 @@ make[1]: Entering directory '/home/vabarros/go/src/github.com/victorabarros/chal
 [33m         |_| |_| |_| \___/  \__,_| \___| \___|      
 
 [1m[33mInitalizing tests[0m
-?   	github.com/victorabarros/challenge-modec	[no test files]
+?   	github.com/victorabarros/fpso-equipment-manager	[no test files]
 === RUN   TestInsertSingleEquipment
 time="2020-09-02T00:24:10Z" level=error msg="bad request: json: cannot unmarshal number into Go struct field Equipment.code of type strings"
 code 400 : {Message:json: cannot unmarshal number into Go struct field Equipment.code of type string}
@@ -47,11 +47,11 @@ code 404 : {Message:vessel 'XPTO' doesn't exists}
 --- PASS: TestInsertVesselBadRequest (0.01s)
 PASS
 coverage: 100.0% of statements
-ok  	github.com/victorabarros/challenge-modec/app/server	0.097s	coverage: 100.0% of statements
+ok  	github.com/victorabarros/fpso-equipment-manager/app/server	0.097s	coverage: 100.0% of statements
 === RUN   TestLoad
 --- PASS: TestLoad (0.00s)
 PASS
 coverage: 83.3% of statements
-ok  	github.com/victorabarros/challenge-modec/internal/config	0.032s	coverage: 83.3% of statements
-?   	github.com/victorabarros/challenge-modec/internal/database	[no test files]
-make[1]: Leaving directory '/home/vabarros/go/src/github.com/victorabarros/challenge-modec'
+ok  	github.com/victorabarros/fpso-equipment-manager/internal/config	0.032s	coverage: 83.3% of statements
+?   	github.com/victorabarros/fpso-equipment-manager/internal/database	[no test files]
+make[1]: Leaving directory '/home/vabarros/go/src/github.com/victorabarros/fpso-equipment-manager'

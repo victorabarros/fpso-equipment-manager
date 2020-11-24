@@ -1,8 +1,6 @@
-# challenge-modec
+# FPSO equipment manager
 
 [![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/victorabarros/travel-routes-optimizer/master/LICENSE)
-
-back-end challenge from Modec
 
 ## Description
 
@@ -58,7 +56,7 @@ To improve the infrastructure and make a easy scalability the development was ma
 | POST   | `/vessel/{code}/equipments`| insert list of equipments |
 | DELETE | `/equipemnt/{code}`        | inactive equipemnt        |
 
-More details about payloads are at the [collection](./dev/Challenge-Modec.postman_collection.json)
+More details about payloads are at the [collection](./dev/fpso-equipment-manager.postman_collection.json)
 
 ### How to Run
 
@@ -87,7 +85,7 @@ output [tests-summ.log](./dev/tests-summ.log)
 
 ```log
 coverage: 100.0% of statements
-ok  	github.com/victorabarros/challenge-modec/app/server	0.085s	coverage: 100.0% of statements
+ok  	github.com/victorabarros/fpso-equipment-manager/app/server	0.085s	coverage: 100.0% of statements
 coverage: 83.3% of statements
-ok  	github.com/victorabarros/challenge-modec/internal/config	0.031s	coverage: 83.3% of statements
+ok  	github.com/victorabarros/fpso-equipment-manager/internal/config	0.031s	coverage: 83.3% of statements
 ```
