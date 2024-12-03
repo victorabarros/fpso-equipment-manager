@@ -1,6 +1,6 @@
 # FPSO equipment manager
 
-[![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/victorabarros/travel-routes-optimizer/master/LICENSE)
+[![Maintainability](https://api.codeclimate.com/v1/badges/eefa802b5f9bb25e7f33/maintainability)](https://codeclimate.com/github/victorabarros/fpso-equipment-manager/maintainability)  [![Go Report Card](https://goreportcard.com/badge/github.com/victorabarros/fpso-equipment-manager)](https://goreportcard.com/report/github.com/victorabarros/fpso-equipment-manager) [![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/victorabarros/travel-routes-optimizer/master/LICENSE)
 
 ## Description
 
